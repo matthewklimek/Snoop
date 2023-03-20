@@ -3,6 +3,7 @@ const app = express();
 const cors = require('cors');
 const multer = require('multer');
 const path = require('path');
+require('dotenv').config();
 const fs = require('fs');
 const { Configuration, OpenAIApi } = require('openai');
 
@@ -15,7 +16,7 @@ app.use(express.static('public'));
 
 const configuration = new Configuration({
   organization: 'org-6cApuEw88AGKMz9mnH2fRxQB',
-  apiKey: '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',
+  apiKey: process.env.OPENAI_API_KEY,
 });
 
 const storage = multer.diskStorage({

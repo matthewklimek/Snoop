@@ -1,4 +1,5 @@
 const express = require('express');
+const axios = require('axios');
 const app = express();
 const cors = require('cors');
 const multer = require('multer');
@@ -6,6 +7,7 @@ const path = require('path');
 require('dotenv').config();
 const fs = require('fs');
 const { Configuration, OpenAIApi } = require('openai');
+
 
 app.use(cors());
 
@@ -18,6 +20,7 @@ const configuration = new Configuration({
   organization: 'org-6cApuEw88AGKMz9mnH2fRxQB',
   apiKey: process.env.OPENAI_API_KEY,
 });
+
 
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
@@ -62,8 +65,43 @@ app.post('/get-chat-response', async (req, res) => {
     throw new Error("OpenAI's message doesn't exist.");
   }
 
+const CHUNK_SIZE = 1024;
+const url = `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_SNOOP_ID}/stream`;
+
+const headers = {
+  'Accept': 'audio/mpeg',
+  'Content-Type': 'application/json',
+  'xi-api-key': '<xi-api-key>'
+};
+
+const data = {
+  'text': chatGPTMessage,
+  'voice_settings': {
+    'stability': 0,
+    'similarity_boost': 0
+  }
+};
+
+try {
+  const response = await axios({
+    method: 'post',
+    url: url,
+    data: data,
+    headers: headers,
+    responseType: 'stream'
+  });
+
+  res.setHeader('Content-Type', 'audio/mpeg');
+  response.data.pipe(res);
+} catch (error) {
+  console.error('Request error:', error);
+  res.status(500).send('Error fetching audio stream');
+}
+  
   res.status(200).json(chatGPTMessage);
 });
+
+
 
 app.get('/', (req, res) => {
   res.status(200).json({ Hello: 'World' });

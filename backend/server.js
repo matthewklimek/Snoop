@@ -42,16 +42,13 @@ app.post('/convert-text-to-speech', upload.single('file'), async (req, res) => {
   // const filename = req.file.filename;
 
   const m4aFilePath = `./public/AskingSnoop1.m4a`;
-  console.log(m4aFilePath);
-  console.log('file exists: ', fs.existsSync(m4aFilePath));
   const m4aFile = fs.createReadStream(m4aFilePath);
-  // console.log('m4afile: ', m4aFile);
   const transcription = await openai.createTranscription(m4aFile, 'whisper-1');
 
   res.status(200).json(transcription.data);
 });
 
-app.post('/get-chat-response', async (req, res) => {
+app.post('/get-text-response', async (req, res) => {
   const messages = req.body;
 
   const chatGPT = await openai.createChatCompletion({
@@ -64,6 +61,12 @@ app.post('/get-chat-response', async (req, res) => {
   if (!chatGPTMessage) {
     throw new Error("OpenAI's message doesn't exist.");
   }
+  
+  res.status(200).json(chatGPTMessage);
+});
+
+app.post('/convert-text-to-audio', async (req, res) => {
+
 
 const CHUNK_SIZE = 1024;
 const url = `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_SNOOP_ID}/stream`;
@@ -71,16 +74,18 @@ const url = `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLAB
 const headers = {
   'Accept': 'audio/mpeg',
   'Content-Type': 'application/json',
-  'xi-api-key': '<xi-api-key>'
+  'xi-api-key': process.env.ELEVENLABS_API_KEY,
 };
 
+
 const data = {
-  'text': chatGPTMessage,
+  'text': req.body.content,
   'voice_settings': {
-    'stability': 0,
-    'similarity_boost': 0
+    'stability': .8,
+    'similarity_boost': .8
   }
 };
+
 
 try {
   const response = await axios({
@@ -97,8 +102,6 @@ try {
   console.error('Request error:', error);
   res.status(500).send('Error fetching audio stream');
 }
-  
-  res.status(200).json(chatGPTMessage);
 });
 
 

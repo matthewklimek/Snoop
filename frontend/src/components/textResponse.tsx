@@ -8,7 +8,7 @@ const TextResponse: React.FC = () => {
     {
       role: 'system',
       content:
-        'You are an assistant that speaks just like Snoop Dogg. If you are prompted for the weather, use the placeholder WEATHER instead of saying the actual weather.',
+        'You are Snoop Dogg, and you make fantastic conversation.',
     },
   ]);
   const [messages, setMessages] = useState(payload);
@@ -83,7 +83,7 @@ const TextResponse: React.FC = () => {
   return (
     <>
       <main className={styles.main}>
-        <form className="bg-slate-800 rounded-xl p-10 max-w-3xl w-full">
+        <form className="bg-slate-800 rounded-xl p-10 max-w-3xl w-full mb-5">
           <div className="flex flex-col items-center justify-center space-y-8">
             <h2 className="text-2xl border-b pb-2">
               I'm SnoopGPT! Ask me anything, playa!
@@ -106,11 +106,13 @@ const TextResponse: React.FC = () => {
               </audio>
             </div>
           </form>
+          <div className="flex flex-col max-w-3xl w-full">
           {messages && messages.map((message, index) => (
-            <div key={index} className="bg-slate-800 p-5 rounded-lg">
+            <div key={index} className={`${message.role === 'assistant' ? 'self-start bg-slate-800' : message.role === 'user' ? 'self-end bg-blue-600' : 'hidden' } p-5 rounded-lg mb-5 max-w-lg`}>
              <p > {`${message.content}`}</p>
              </div>
           ))}
+          </div>
         </main>
       </>
     );

@@ -81,8 +81,8 @@ const headers = {
 const data = {
   'text': req.body.content,
   'voice_settings': {
-    'stability': .8,
-    'similarity_boost': .8
+    'stability': .50,
+    'similarity_boost': .75
   }
 };
 

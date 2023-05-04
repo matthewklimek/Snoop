@@ -45,7 +45,8 @@ npm run dev
 6. Open your browser and navigate to `http://localhost:3000` to start chatting with Snoop Dogg! 🎉🚀
 
 ## Demo 🎥
-Check out the live demo of SnoopGPT in action here!
+Check out the live demo of SnoopGPT in action [here](https://snoop.io)
+!
 
 You can also view a video walkthrough of the SnoopGPT experience here.
 

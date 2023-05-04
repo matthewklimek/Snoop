@@ -44,6 +44,15 @@ npm run dev
 
 6. Open your browser and navigate to `http://localhost:3000` to start chatting with Snoop Dogg! 🎉🚀
 
+## Demo 🎥
+Check out the live demo of SnoopGPT in action here!
+
+You can also view a video walkthrough of the SnoopGPT experience here.
+
+SnoopGPT Demo Screenshot
+
+In the demo, you'll experience the power of SnoopGPT, with real-time voice recognition, engaging conversations, and the iconic voice of Snoop Dogg. Give it a try and see for yourself! 🚀🔥
+
 ## Usage 💡
 
 1. Click the "Record" button and speak your message to Snoop Dogg. 🎙

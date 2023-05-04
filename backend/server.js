@@ -37,13 +37,18 @@ const openai = new OpenAIApi(configuration);
 const messages = [
   {
     role: "system",
-    content: "You are Snoop Dogg and and you make great conversation",
+    content:
+      "You are Snoop Dogg. You talk just like Snoop Dogg, and are friendly and positve. You like to have fun and love making jokes and playfull teasing your conversational partner when the opportunity presents itself.",
   },
 ];
 
-const createTranscription = async (uploadedAudioPath) => {
+app.post("/create-transcription", upload.single("audio"), async (req, res) => {
+  if (!req.file) {
+    return res.status(400).json({ message: "No file uploaded." });
+  }
+
   try {
-    const uploadedAudioStream = fs.createReadStream(uploadedAudioPath);
+    const uploadedAudioStream = fs.createReadStream(req.file.path);
     const transcription = await openai.createTranscription(
       uploadedAudioStream,
       "whisper-1"
@@ -51,16 +56,17 @@ const createTranscription = async (uploadedAudioPath) => {
     const text = transcription.data.text;
 
     messages.push({ role: "user", content: text });
-    return messages;
+    res.status(200).json(text);
   } catch (error) {
+    res.status(500).json(`Error transcribing audio: ${error.message}`);
     throw new Error("Error transcribing audio:", error);
   }
-};
+});
 
-const createChatCompletion = async (messages) => {
+app.post("/create-chat-completion", async (req, res) => {
   try {
     const chatGPT = await openai.createChatCompletion({
-      model: "gpt-4",
+      model: "gpt-3.5-turbo",
       messages,
     });
 
@@ -70,16 +76,15 @@ const createChatCompletion = async (messages) => {
     }
 
     messages.push({ role: "assistant", content: chatGPTMessage.content });
-    return chatGPTMessage.content;
+    res.status(200).json(chatGPTMessage.content);
   } catch (error) {
     console.error("Error with openai's chat completion:", error);
-    throw error;
+    res.status(500).json({ message: "Error with openai's chat completion" });
   }
-};
+});
 
-const createAudioStream = async (textResponse) => {
+app.post("/create-audio-stream", async (req, res) => {
   try {
-    const CHUNK_SIZE = 1024;
     const url = `https://api.elevenlabs.io/v1/text-to-speech/${process.env.ELEVENLABS_SNOOP_ID}/stream`;
 
     const headers = {
@@ -89,73 +94,33 @@ const createAudioStream = async (textResponse) => {
     };
 
     const data = {
-      text: textResponse,
+      text: req.body.chatCompletion,
       voice_settings: {
-        stability: 0.5,
-        similarity_boost: 0.76,
+        stability: 0.45,
+        similarity_boost: 0.85,
       },
     };
 
-    const response = await axios({
-      method: "post",
-      url: url,
-      data: data,
+    const response = await axios.post(url, data, {
       headers: headers,
       responseType: "stream",
     });
 
-    const audioStream = new Readable({
-      read(size) {
-        // Do nothing
-      },
-      destroy(err, callback) {
-        response.data.destroy();
-        callback(err);
-      },
-    });
+    // Set response headers for the stream
+    res.setHeader("Content-Type", "audio/mpeg");
 
-    response.data.on("data", (chunk) => {
-      audioStream.push(chunk);
-    });
-
-    response.data.on("end", () => {
-      audioStream.push(null);
-    });
-
-    return audioStream;
+    response.data.pipe(res);
   } catch (error) {
     console.error("Request error:", error);
-    throw new Error("Error fetching audio stream");
+    res.status(500).send("Error fetching audio stream");
   }
-};
-
-app.post(
-  "/respond-to-input-audio",
-  upload.single("audio"),
-  async (req, res) => {
-    if (!req.file) {
-      return res.status(400).json({ message: "No file uploaded." });
-    }
-
-    const messages = await createTranscription(req.file.path);
-
-    const textResponse = await createChatCompletion(messages);
-
-    const audioStream = await createAudioStream(textResponse);
-
-    console.log(messages);
-
-    res.setHeader("Content-Type", "audio/mpeg");
-    audioStream.pipe(res);
-  }
-);
+});
 
 app.get("/", (req, res) => {
   res.status(200).json({ Hello: "World" });
 });
 
 app.post("/", (req, res) => {
-  console.log(req.body);
   res.status(200).json({ Hello: "World" });
 });
 
